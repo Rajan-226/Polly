@@ -1,65 +1,33 @@
-import React, { useRef } from "react";
-import {
-    Button,
-    Form,
-    FormGroup,
-    Label,
-    Input,
-    Col,
-    FormFeedback,
-    Modal,
-    ModalHeader,
-    ModalBody,
-    Alert,
-} from "reactstrap";
+import React, { useRef, useState } from "react";
+import { Button, Form, FormGroup, Label, Input, Col, Alert } from "reactstrap";
 import { useNavigate } from "react-router-dom";
+import { login } from "../Api/api-auth";
+import auth from "../Api/auth-helper";
 
 function Login() {
     const nameRef = useRef("");
     const passRef = useRef("");
+    const [error, setError] = useState(null);
     const navigate = useNavigate();
 
     async function handleSubmit(e) {
         e.preventDefault();
+        setError(null);
+
         const user = {
-            userName: nameRef.current.value,
-            passWord: passRef.current.value,
+            username: nameRef.current.value,
+            password: passRef.current.value,
         };
-        // console.log(user);
 
-        fetch("http://localhost:5000/login", {
-            method: "POST",
-            headers: {
-                Accept: "application/json",
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify(user),
-        })
-            .then((resp) => {
-                return resp.json();
-            })
-            .then((data) => {
-                console.log(data);
-            });
+        const response = await login(user);
 
-        // fetch("http://localhost:5000/login")
-        //     .then((resp) => resp.json())
-        //     .then((data) => {
-        //         console.log(data);
-        //     })
-        //     .catch((error) => {
-        //         console.log(error);
-        //     });
+        if (response.error) {
+            setError(response.message);
+        } else {
+            auth.authenticate(response.token);
+            window.location.href = "/";
+        }
 
-        // fetch("http://localhost:5000/data")
-        //     .then((response) => response.json())
-        //     .then((data) => {
-        //         // setData(data);
-        //         console.log(data);
-        //     })
-        //     .catch((error) => {
-        //         console.log(error);
-        //     });
         // navigate("/");
     }
 
@@ -67,13 +35,8 @@ function Login() {
         <div className="container">
             <div className="row row-content">
                 <div className="col-12 col-md-9 mt-5">
-                    {/* {this.state.error && (
-                        <Alert color="danger">{this.state.error}</Alert>
-                    )} */}
-                    <Form
-                        onSubmit={handleSubmit}
-                        // onChange={this.handleInputChange}
-                    >
+                    {error && <Alert color="danger">{error}</Alert>}
+                    <Form onSubmit={handleSubmit}>
                         <FormGroup row>
                             <Label htmlFor="username" md={2}>
                                 Username
@@ -86,12 +49,7 @@ function Login() {
                                     placeholder="Username"
                                     innerRef={nameRef}
                                     required
-                                    // value={this.state.username}
-                                    // valid={errors.username === ""}
-                                    // invalid={errors.username !== ""}
-                                    // onBlur={this.handleBlur("username")}
                                 />
-                                {/* <FormFeedback>{errors.username}</FormFeedback> */}
                             </Col>
                         </FormGroup>
 
@@ -107,12 +65,7 @@ function Login() {
                                     placeholder="Password"
                                     innerRef={passRef}
                                     required
-                                    // value={this.state.password}
-                                    // valid={errors.password === ""}
-                                    // invalid={errors.password !== ""}
-                                    // onBlur={this.handleBlur("password")}
                                 />
-                                {/* <FormFeedback>{errors.password}</FormFeedback> */}
                             </Col>
                         </FormGroup>
 
@@ -126,12 +79,6 @@ function Login() {
                     </Form>
                 </div>
             </div>
-            {/* <Modal isOpen={this.state.open} toggle={this.toggleModal}>
-                <ModalHeader toggle={this.toggleModal}>Login</ModalHeader>
-                <ModalBody>
-                    You have successfully Logged In ! <br />
-                </ModalBody>
-            </Modal> */}
         </div>
     );
 }

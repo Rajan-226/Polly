@@ -3,28 +3,26 @@ const cors = require("cors");
 const app = express();
 const port = 5000;
 
-app.use(cors());
-app.use(express.json());
-app.options("*", cors());
+//connecting db
+require("./config/dbconnection");
 
-app.post("/login", (req, resp) => {
-    console.log(req.body);
-    resp.send({ data: "5000" });
-});
+//Formalities to avoid cors error and to convert string format of resp to json
+app.use(cors());
+app.options("*", cors());
+app.use(express.json());
+
+const usersRoute = require("./routes/users");
+const pollsRoute = require("./routes/polls");
+
+app.use("/api/auth", usersRoute);
+
+// app.use("*", function (req, res, next) {
+//    // Authenticating the user
+//   authenticateRequest(req, res, next);
+// });
+
+app.use("/api/polls", pollsRoute);
 
 app.listen(5000, () => {
-    console.log("hi on port", port);
+    console.log("App listening on port: ", port);
 });
-/**
- * 
- * login/register: post
- * 
- * polls: get
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- */

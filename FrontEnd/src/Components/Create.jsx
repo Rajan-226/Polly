@@ -1,28 +1,31 @@
-import React, { useState } from "react";
-import {
-    Button,
-    Form,
-    FormGroup,
-    Label,
-    Input,
-    Col,
-    Modal,
-    ModalHeader,
-    ModalBody,
-} from "reactstrap";
+import React, { useState, useRef } from "react";
+import { Button, Form, FormGroup, Label, Input, Col } from "reactstrap";
+import { create } from "../Api/api-poll";
+import { useNavigate } from "react-router-dom";
 
 function Create() {
     var [options, setOptions] = useState(["", ""]);
+    const questionRef = useRef("");
+    const navigate = useNavigate();
 
     async function handleSubmit(e) {
         e.preventDefault();
-
-        // navigate("/");
+        const poll = {
+            question: questionRef.current.value,
+            options: options.filter((option) => option !== ""),
+        };
+        await create(poll);
+        navigate("/");
     }
-    
 
     function addOption() {
         setOptions([...options, ""]);
+    }
+
+    function handleAnswer(e, index) {
+        const nextOptions = [...options];
+        nextOptions[index] = e.target.value;
+        setOptions(nextOptions);
     }
 
     const optionsUI = options.map((option, i) => (
@@ -34,13 +37,13 @@ function Create() {
                 >
                     Option
                 </Label>
+
                 <Col md={6}>
                     <Input
                         className="form-input"
                         type="text"
-                        value={option}
                         key={i}
-                        onChange={(e) => this.handleAnswer(e, i)}
+                        onChange={(e) => handleAnswer(e, i)}
                     />
                 </Col>
             </FormGroup>
@@ -63,8 +66,8 @@ function Create() {
                                 className="form-input"
                                 type="text"
                                 name="question"
-                                // value={this.state.question}
-                                // onChange={this.handleChange}
+                                innerRef={questionRef}
+                                required
                             />
                         </Col>
                     </FormGroup>
@@ -92,22 +95,6 @@ function Create() {
                         </Col>
                     </div>
                 </Form>
-
-                {/* <Modal isOpen={this.state.open} toggle={this.toggleModal}>
-                    <ModalHeader toggle={this.toggleModal}>
-                        Your Poll has been created !
-                    </ModalHeader>
-                    <ModalBody>
-                        <Button className="btn-primary">
-                            <Link
-                                style={{ color: "#FFF" }}
-                                to={"/poll/" + this.state.id}
-                            >
-                                View
-                            </Link>
-                        </Button>
-                    </ModalBody>
-                </Modal> */}
             </div>
         </div>
     );

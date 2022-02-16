@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, userPolls } from "react";
 import {
     TabContent,
     TabPane,
@@ -9,61 +9,60 @@ import {
     Col,
 } from "reactstrap";
 import { useState } from "react";
+import auth from "../Api/auth-helper";
+import { useNavigate } from "react-router-dom";
+import { readall, readUser } from "../Api/api-poll";
 
 function Home() {
-    const pollsArray = [
-        {
-            topic: "DSA VS DEV",
-            id: 0,
-        },
-        {
-            topic: "DSA VS DEV 2",
-            id: 1,
-        },
-        {
-            topic: "DSA VS DEV 3",
-            id: 2,
-        },
-        {
-            topic: "DSA VS DEV 4",
-            id: 3,
-        },
-    ];
+    const [allPolls, setAllPolls] = useState([]);
+    const [userPolls, setUserPolls] = useState([]);
+    const navigate = useNavigate();
+
+    useEffect(async () => {
+        setAllPolls(await readall());
+
+        if (auth.isAuthenticated()) {
+            setUserPolls(await readUser());
+        }
+    }, []);
+
     const [tab, setTab] = useState("1");
 
-    const allPolls = pollsArray.map((poll) => {
+    const allPollsUI = allPolls.map((poll) => {
         return (
             <li
                 className="list-group-item list-group-item-info"
                 style={{ cursor: "pointer" }}
-                onClick={() => goToPoll(poll.id)}
-                key={poll.id}
+                onClick={() => goToPoll(poll._id)}
+                key={poll._id}
             >
                 <i className="bi bi-pie-chart-fill"></i>
                 &nbsp;&nbsp;
-                {poll.topic}
-            </li>
-        );
-    });
-    const userPolls = pollsArray.map((poll) => {
-        return (
-            <li
-                className="list-group-item list-group-item-info"
-                style={{ cursor: "pointer" }}
-                onClick={() => goToPoll(poll.id)}
-                key={poll.id}
-            >
-                <i className="bi bi-pie-chart-fill"></i>
-                &nbsp;&nbsp;
-                {"User " + poll.topic}
+                {poll.question}
             </li>
         );
     });
 
-    function goToPoll(id) {
-        console.log("Going to poll", id);
+    const userPollsUI = userPolls.map((poll) => {
+        return (
+            <li
+                className="list-group-item list-group-item-info"
+                style={{ cursor: "pointer" }}
+                onClick={() => goToPoll(poll._id)}
+                key={poll._id}
+            >
+                <i className="bi bi-pie-chart-fill"></i>
+                &nbsp;&nbsp;
+                {poll.question}
+            </li>
+        );
+    });
+
+    function goToPoll(_id) {
+        // console.log("Going to poll", _id);
+        navigate(`/Poll/${_id}`);
     }
-    
+
     return (
         <>
             <Nav className="mt-4 justify-content-center" tabs>
@@ -78,31 +77,33 @@ function Home() {
                         All Polls
                     </NavLink>
                 </NavItem>
-                <NavItem>
-                    <NavLink
-                        active={tab == "2"}
-                        onClick={() => {
-                            setTab("2");
-                        }}
-                        style={{ color: "#495057", cursor: "pointer" }}
-                    >
-                        Your Polls
-                    </NavLink>
-                </NavItem>
+                {auth.isAuthenticated() && (
+                    <NavItem>
+                        <NavLink
+                            active={tab == "2"}
+                            onClick={() => {
+                                setTab("2");
+                            }}
+                            style={{ color: "#495057", cursor: "pointer" }}
+                        >
+                            Your Polls
+                        </NavLink>
+                    </NavItem>
+                )}
             </Nav>
-            
+
             <TabContent activeTab={tab}>
                 <TabPane tabId="1">
-                    <Row>
+                    <Row style={{ marginRight: "0" }}>
                         <Col className="mx-auto" md="8">
-                            <ul className="list-group polls">{allPolls}</ul>
+                            <ul className="list-group polls">{allPollsUI}</ul>
                         </Col>
                     </Row>
                 </TabPane>
                 <TabPane tabId="2">
-                    <Row>
+                    <Row style={{ marginRight: "0" }}>
                         <Col className="mx-auto" md="8">
-                            <ul className="list-group polls">{userPolls}</ul>
+                            <ul className="list-group polls">{userPollsUI}</ul>
                         </Col>
                     </Row>
                 </TabPane>

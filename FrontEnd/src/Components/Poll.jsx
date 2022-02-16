@@ -1,78 +1,101 @@
 import React from "react";
 import { Alert, Button } from "reactstrap";
 import { VictoryPie } from "victory";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { readOne } from "../Api/api-poll";
+import { useParams } from "react-router-dom";
+import { vote } from "../Api/api-poll";
 
 function Poll() {
-    const poll = {
-        question: "DSA VS DEV",
-        options: [
-            { option: "1", votes: 1, id: 1 },
-            { option: "2", votes: 1, id: 1 },
-            { option: "3", votes: 3, id: 1 },
-            { option: "4", votes: 1, id: 1 },
-        ],
-    };
+    const { id } = useParams();
+    const [poll, setPoll] = useState({});
+    const [error, setError] = useState(null);
+    const [msg, setMsg] = useState(null);
     const [resultOpen, setResultOpen] = useState(false);
+
+    useEffect(async () => {
+        await getPoll();
+    }, []);
+
+    async function getPoll() {
+        // console.log(id);
+        // const resp = await readOne(id);
+        // console.log(resp);
+
+        setPoll(await readOne(id));
+    }
+
+    async function voteOption(option) {
+        // console.log(option); 
+        const resp = await vote(id, { answer: option });
+        console.log(resp);
+        if (resp.error) {
+            setMsg(null);
+            setError(resp.error);
+        } else {
+            setMsg("Voted successfully");
+        }
+
+        await getPoll();
+    }
 
     const optionIcons =
         poll.options &&
         poll.options.map(
-            (option) =>
-                option.option && (
+            (current) =>
+                current.option && (
                     <Button
-                        // onClick={() =>
-                        //     vote(this.state.poll._id, {
-                        //         answer: option.option,
-                        //     }).then((data) => {
-                        //         if (data.error)
-                        //             this.setState({
-                        //                 msg: "",
-                        //                 error: data.message,
-                        //             });
-                        //         else
-                        //             this.setState({
-                        //                 error: "",
-                        //                 msg: "Your Vote has been successfully recorded",
-                        //             });
-                        //         this.refresh();
-                        //     })
-                        // }
+                        onClick={() => voteOption(current.option)}
                         className="btn-primary ms-3"
                         color="warning"
-                        key={option._id}
+                        key={current._id}
                     >
-                        {option.option}
+                        {current.option}
                     </Button>
                 )
         );
-    const response =
+
+    const responseUI =
         poll.options &&
         poll.options.map(
-            (option) =>
-                option.option && (
+            (current) =>
+                current.option && (
                     <Button
                         className="btn-primary ms-3"
                         color="info"
-                        key={option.id}
+                        key={current._id}
                     >
-                        {option.option}
+                        {current.option}
                         &nbsp;-&nbsp;
-                        {option.votes}
+                        {current.votes}
                     </Button>
                 )
         );
     return (
         <div className="container mt-5">
+            {error && (
+                <Alert className="col-md-6 mx-auto" color="danger">
+                    {error}
+                </Alert>
+            )}
+
+            {msg && (
+                <Alert className="col-md-8 mx-auto" color="primary">
+                    {msg}
+                </Alert>
+            )}
+
             <h4 className="col-md-10 mx-auto">
                 <Alert color="info">{poll.question}</Alert>
             </h4>
             <div className="buttons_center mt-4 mb-4">{optionIcons}</div>
+
             <Button onClick={() => setResultOpen(!resultOpen)}>
                 View Results
             </Button>
-            <Button className="ms-2" onClick={() => 10000000}>
-                <i class="bi bi-arrow-clockwise"></i>
+
+            <Button className="ms-2" onClick={getPoll}>
+                <i className="bi bi-arrow-clockwise"></i>
             </Button>
 
             {resultOpen && (
@@ -80,7 +103,7 @@ function Poll() {
                     className="container mt-3"
                     style={{ border: "2px solid black" }}
                 >
-                    <div className="container mt-3 mb-3">{response}</div>
+                    <div className="container mt-3 mb-3">{responseUI}</div>
 
                     <VictoryPie
                         data={poll.options}

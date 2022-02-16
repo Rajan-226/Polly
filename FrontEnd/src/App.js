@@ -17,7 +17,7 @@ function App() {
                 <Route exact path="/Login" element={<Login />} />
                 <Route exact path="/Register" element={<Register />} />
                 <Route exact path="/Create" element={<Create />} />
-                <Route exact path="/Poll" element={<Poll />} />
+                <Route exact path="/Poll/:id" element={<Poll />} />
                 <Route path="*" element={<NotFound />} />
             </Routes>
         </div>
@@ -25,3 +25,21 @@ function App() {
 }
 
 export default App;
+/**
+ *
+ * same options ka case
+ *
+ * expiresIn ka scene
+ *
+ * Private routes
+ *
+ * why do we even need jwt
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ */

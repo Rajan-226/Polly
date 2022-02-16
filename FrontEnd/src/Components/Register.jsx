@@ -7,12 +7,11 @@ import {
     Input,
     Col,
     FormFeedback,
-    Modal,
-    ModalHeader,
-    ModalBody,
     Alert,
 } from "reactstrap";
 import { useNavigate } from "react-router-dom";
+import { register } from "../Api/api-auth";
+import auth from "../Api/auth-helper";
 
 const touched = {
     realName: false,
@@ -32,16 +31,25 @@ function Register() {
 
     const navigate = useNavigate();
 
-    const [error, setError] = useState(null);
+    const [errorFromBackEnd, setErrorFromBackEnd] = useState(null);
 
     async function handleSubmit(e) {
         e.preventDefault();
+
+        setErrorFromBackEnd(null);
+
         const user = {
-            userName: userNameRef.current.value,
-            realName: realNameRef.current.value,
-            passWord: passRef.current.value,
+            username: userNameRef.current.value,
+            password: passRef.current.value,
         };
-        console.log(user);
+
+        const response = await register(user);
+        if (response.error) {
+            setErrorFromBackEnd(response.message);
+        } else {
+            auth.authenticate(response.token, () => {});
+            window.location.href = "/";
+        }
 
         // navigate("/");
     }
@@ -79,7 +87,9 @@ function Register() {
         <div className="container">
             <div className="row row-content">
                 <div className="col-12 col-md-9 mt-5">
-                    {error && <Alert color="danger">{this.state.error}</Alert>}
+                    {errorFromBackEnd && (
+                        <Alert color="danger">{errorFromBackEnd}</Alert>
+                    )}
                     <Form onSubmit={handleSubmit} onChange={handleInputChange}>
                         <FormGroup row>
                             <Label htmlFor="name" md={2}>
@@ -169,14 +179,6 @@ function Register() {
                     </Form>
                 </div>
             </div>
-
-            {/* <Modal isOpen={this.state.open} toggle={this.toggleModal}>
-                <ModalHeader toggle={this.toggleModal}>Register</ModalHeader>
-                <ModalBody>
-                    You have successfully registered ! <br />
-                    <Link to="/login"></Link>
-                </ModalBody>
-            </Modal> */}
         </div>
     );
 }
